@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"wechatbot/config"
 	"wechatbot/openai"
-	"wechatbot/utils"
 
 	"github.com/eatmoreapple/openwechat"
 	log "github.com/sirupsen/logrus"
@@ -30,28 +28,32 @@ func NewGroupMessageHandler() MessageHandlerInterface {
 }
 
 func (gmh *GroupMessageHandler) ReplyText(msg *openwechat.Message) error {
-	sender, err := msg.Sender()
+	sender, _ := msg.Sender()
 	group := openwechat.Group{User: sender}
 	log.Printf("Received Group %v Text Msg : %v", group.NickName, msg.Content)
 
-	wechat := config.GetWechatKeyword()
 	requestText := msg.Content
-	if wechat != nil {
-		content, key := utils.ContainsI(requestText, *wechat)
-		if len(key) == 0 {
-			return nil
-		}
-
-		splitItems := strings.Split(content, key)
-		if len(splitItems) < 2 {
-			return nil
-		}
-
-		requestText = strings.TrimSpace(splitItems[1])
+	if group.NickName != "flow" {
+		log.Print("不回复" + group.NickName)
+		return nil
 	}
+	// wechat := config.GetWechatKeyword()
+	// if wechat != nil {
+	// 	content, key := utils.ContainsI(requestText, *wechat)
+	// 	if len(key) == 0 {
+	// 		return nil
+	// 	}
 
-	log.Println("问题：", requestText)
-	reply, err := openai.Completions(requestText)
+	// 	splitItems := strings.Split(content, key)
+	// 	if len(splitItems) < 2 {
+	// 		return nil
+	// 	}
+
+	// 	requestText = strings.TrimSpace(splitItems[1])
+	// }
+	catRequestText := "请使用抒情的、感性的、每句话结尾带喵的、口语化的、可爱的、女性化的、调皮的、随性的、幽默的、害羞的、腼腆的、态度傲娇的语言风格回复：" + requestText
+	log.Println("问题：", catRequestText)
+	reply, err := openai.Completions(catRequestText)
 	if err != nil {
 		log.Println(err)
 		if reply != nil {
